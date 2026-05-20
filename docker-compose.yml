@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: devuser
+      POSTGRES_PASSWORD: devpassword
+      POSTGRES_DB: thaitravel
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgres://devuser:devpassword@db:5432/thaitravel
+      NODE_ENV: production
+      NEXTAUTH_SECRET: supersecretchangeit
+      NEXTAUTH_URL: http://localhost:3000
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
